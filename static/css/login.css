@@ -1,0 +1,80 @@
+/* static/css/login.css */
+body {
+  font-family: 'Assistant', sans-serif;
+  background-color: #ffffff;
+  background-image: url("/static/images/pic88.png");  
+   background-size: cover;            /* 🔹 חשוב: מכסה את כל הרקע */
+  background-repeat: no-repeat;      /* 🔹 חשוב: לא חוזר */
+  background-position: center center;/* 🔹 מרכז את התמונה */
+  background-attachment: fixed;     
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  direction: rtl;
+}
+
+.login-container {
+  background-color: #ffffff;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
+
+h1 {
+  margin-bottom: 24px;
+  color: #333;
+  font-weight: 600;
+}
+
+label {
+  display: block;
+  text-align: right;
+  margin: 12px 0 6px;
+  font-weight: 500;
+}
+
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+  box-sizing: border-box;
+  transition: border-color 0.3s;
+}
+
+input:focus {
+  outline: none;
+  border-color: #7e57c2;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #7e57c2;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  margin-top: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background-color: #5e35b1;
+  transform: scale(1.02);
+}
+
+.error-msg {
+  margin-top: 20px;
+  color: red;
+  font-weight: bold;
+}

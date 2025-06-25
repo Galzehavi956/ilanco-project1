@@ -1,0 +1,100 @@
+/* main_dashboard.css */
+
+/* רקע כללי */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #e1ecf7;  /* רקע כחול בהיר אחיד */
+}
+
+body {
+  background-color: #e1ecf7;  /* כחול בהיר נקי ונעים */
+  font-family: 'Segoe UI', sans-serif;
+  padding: 20px;
+}
+
+.stat-card {
+  background-color: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  transition: 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+}
+
+.stat-title {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #212529;
+}
+
+h1 {
+  font-weight: bold;
+  margin-bottom: 30px;
+}
+/* 📊 כרטיסי גרפים אחידים */
+.card {
+  background-color: white;  /* ✅ נוספה שורה – שיהיה לבן */
+
+  min-height: 350px;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header {
+  background-color: white; 
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  min-height: 50px; /* מבטיח גובה אחיד */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.card-body {
+  background-color: white;  /* ✅ ודא שגם הגוף לבן */
+
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  }
+
+.chart-container {
+  max-width: 100%;
+  height: 300px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.chart-container-small {
+  max-width: 100%;
+  height: 250px;
+  margin: 0 auto;
+  position: relative;
+}
+
+
+.small-card {
+  background-color: white;  /* ✅ ודא שגם הגוף לבן */
+
+  max-height: 550px;
+  padding: 20px;
+}
+
+.small-card canvas {
+  max-height: 420px;
+}

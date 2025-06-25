@@ -1,0 +1,74 @@
+/*אחראי על התפריט */
+/* רקע כללי */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #e1ecf7;  /* רקע כחול בהיר אחיד */
+}
+
+
+#sidebar {
+  width: 250px;
+  background-color: #f8f9fa;
+  position: fixed;
+  right: 0;
+  top: 70px; /* במקום top: 0 */
+  height: calc(100% - 70px);  /* כדי לא להסתיר את כפתור ☰ */
+  padding: 20px;
+  border-left: 1px solid #ddd;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+}
+
+#sidebar.show {
+  transform: translateX(0);
+ 
+}
+
+#content {
+    margin-top: 40px;   /* ⬅️ זה המרווח שידחוף את כל התוכן של העמודים כלפי מטה */
+
+  margin-right: 0;
+  transition: margin-right 0.3s ease;
+}
+
+#content.pushed {
+  margin-right: 250px;  /* ברגע שהסיידבר פתוח */
+}
+
+#sidebarToggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1100;
+  transition: right 0.3s ease;
+  
+
+}
+
+.text-high {
+  color: #dc3545 !important; /* אדום */
+  font-weight: bold;
+}
+
+.text-medium {
+  color: #ffc107 !important; /* צהוב */
+  font-weight: bold;
+}
+
+.text-low {
+  color: #28a745 !important; /* ירוק */
+  font-weight: bold;
+}
+
+.container,
+.container-fluid,
+.card,
+.table,
+#content {
+  background-color: transparent !important;
+}
+

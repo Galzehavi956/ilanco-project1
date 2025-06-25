@@ -1,0 +1,115 @@
+
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+
+  <h1 class="mb-4 text-center">
+      📋 דאשבורד - תוכניות ייצור 
+    <img src="https://cdn-icons-png.flaticon.com/512/447/447031.png" alt="Icon" width="35">
+  </h1>
+
+<a href="{{ url_for('production.export_excel') }}" class="btn btn-outline-success d-flex align-items-center gap-2 mb-3" style="width: fit-content;">
+  <img src="https://cdn-icons-png.flaticon.com/512/732/732220.png" alt="Excel Icon" width="24" height="24">
+  ייצוא לאקסל
+</a>
+
+
+
+  <!-- 🔍 טופס סינון -->
+  <form method="get" class="mb-4">
+    <div class="row g-2">
+      <div class="col-md-2">
+        <label>סטטוס:</label>
+        <select name="status" class="form-select">
+          <option value="">הכל</option>
+          <option value="מתוכנן">מתוכנן</option>
+          <option value="בייצור">בייצור</option>
+          <option value="ממתין לבקרת איכות">ממתין לבקרת איכות</option>
+          <option value="עבר בקרת איכות">עבר בקרת איכות</option>
+          <option value="נכשל בקרת איכות"> נכשל בקרת איכות</option>
+          <option value="בוצע">בוצע</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label>עדיפות:</label>
+        <select name="priority" class="form-select">
+          <option value="">הכל</option>
+          <option value="גבוהה">גבוהה</option>
+          <option value="בינונית">בינונית</option>
+          <option value="נמוכה">נמוכה</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label>מתאריך:</label>
+        <input type="date" name="from_date" class="form-control">
+      </div>
+      <div class="col-md-2">
+        <label>עד תאריך:</label>
+        <input type="date" name="to_date" class="form-control">
+      </div>
+      <div class="col-md-2">
+        <label>לקוח:</label>
+        <input type="text" name="customer" class="form-control">
+      </div>
+      <div class="col-md-2 align-self-end">
+        <button type="submit" class="btn btn-primary w-100">סנן</button>
+      </div>
+    </div>
+  </form>
+
+  <!-- 📋 טבלה -->
+  <table class="table table-bordered table-striped shadow-sm">
+    <thead class="table-light">
+      <tr>
+        <th>ID</th>
+        <th>תאריך</th>
+        <th>כמות</th>
+        <th>סטטוס</th>
+        <th>הערות</th>
+        <th>לקוח</th>
+        <th>עדיפות</th>
+        {% if session['role'] == 'admin' %}
+        <th>עריכה</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for plan in plans %}
+      <tr>
+        <td>{{ plan.id }}</td>
+        <td>{{ plan.date }}</td>
+        <td>{{ plan.quantity }}</td>
+        <td>
+          <select class="form-select form-select-sm quick-status" data-id="{{ plan.id }}">
+            <option value="מתוכנן" {% if plan.status == 'מתוכנן' %}selected{% endif %}>מתוכנן</option>
+            <option value="בייצור" {% if plan.status == 'בייצור' %}selected{% endif %}>בייצור</option>
+            <option value="ממתין לבקרת איכות" {% if plan.status == 'ממתין לבקרת איכות' %}selected{% endif %}>ממתין לבקרת איכות</option>
+             <option value="נכשל בקרת איכות" {% if plan.status == 'נכשל בקרת איכות' %}selected{% endif %}>נכשל בקרת איכות</option>
+            <option value="עבר בקרת איכות" {% if plan.status == 'עבר בקרת איכות' %}selected{% endif %}>עבר בקרת איכות</option>
+            <option value="בוצע" {% if plan.status == 'בוצע' %}selected{% endif %}>בוצע</option>
+          </select>
+        </td>
+        <td>{{ plan.notes }}</td>
+        <td>{{ plan.customer }}</td>
+        <td>{{ plan.priority }}</td>
+        {% if session['role'] == 'admin' %}
+        <td>
+          <a href="/edit/{{ plan.id }}" class="btn btn-outline-secondary btn-sm">✏️ ערוך</a>
+
+             <form method="POST" action="/api/production/delete/{{ plan.id }}"
+              onsubmit="return confirm('האם אתה בטוח שברצונך למחוק את התוכנית?')"
+              style="display:inline-block; margin-right: 5px;">
+          <button type="submit" class="btn btn-sm btn-danger">🗑 מחק</button>
+        </form>
+        </td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/production_dashboard.js') }}"></script>
+{% endblock %}

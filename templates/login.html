@@ -1,0 +1,29 @@
+<!-- templates/login.html -->
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>🔐 התחברות</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="login-container">
+    <h1>🔐 התחברות למערכת</h1>
+
+    <form method="post" action="/login">
+      <label for="username">שם משתמש:</label>
+      <input type="text" id="username" name="username" required>
+
+      <label for="password">סיסמה:</label>
+      <input type="password" id="password" name="password" required>
+
+      <button type="submit">התחבר</button>
+    </form>
+
+    {% if error %}
+      <p class="error-msg">{{ error }}</p>
+    {% endif %}
+  </div>
+</body>
+</html>

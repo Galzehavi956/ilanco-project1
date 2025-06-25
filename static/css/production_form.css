@@ -1,0 +1,27 @@
+body {
+  font-family: 'Assistant', sans-serif;
+  background-color: #e1ecf7;  /* כחול בהיר נקי ונעים */
+  direction: rtl;
+}
+
+h1 {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.production-form {
+  max-width: 600px;
+  background-color: #ffffff;  
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.form-label {
+  font-weight: 500;
+}
+
+button[type="submit"] {
+  font-size: 1.2rem;
+}
+

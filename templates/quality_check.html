@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}טופס בקרת איכות - מערכת אילנקו{% endblock %}
+
+{% block content %}
+<h2 class="mb-4 text-center">טופס בקרת איכות עבור תוכנית מס' {{ plan.id }}</h2>
+
+<div class="mt-4">
+  <a href="{{ url_for('quality.quality_dashboard') }}" class="btn btn-success d-inline-flex align-items-center gap-2">
+    חזרה לדשבורד בקרות <span class="ms-1">➡</span>
+  </a>
+</div>
+
+{% if plan.status == 'ממתין לבקרת איכות' and not plan.quality_status %}
+<form method="POST" action="/submit-quality/{{ plan.id }}" class="border p-4 rounded shadow-sm bg-light needs-success-msg">
+
+  <div class="mb-3">
+    <label class="form-label">תאריך:</label>
+    <input type="text" class="form-control" name="date" value="{{ plan.date }}" readonly>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">לקוח:</label>
+    <input type="text" class="form-control" value="{{ plan.customer }}" readonly>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">תוצאה:</label>
+    <select name="quality_status" class="form-select" required>
+      <option value="עבר">✅ עבר</option>
+      <option value="נכשל">❌ נכשל</option>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">הערות:</label>
+    <textarea name="notes" class="form-control" rows="4"></textarea>
+  </div>
+
+  <button type="submit" class="btn btn-success">שלח</button>
+</form>
+{% else %}
+<div class="alert alert-warning text-center fw-bold mt-5">
+  ❗ בקרת איכות כבר בוצעה עבור תוכנית זו – לא ניתן לבצע שוב.
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/form-handler.js') }}"></script>
+{% endblock %}

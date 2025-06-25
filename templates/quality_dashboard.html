@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}דאשבורד בקרות איכות - מערכת אילנקו{% endblock %}
+
+{% block content %}
+<h2 class="mb-4 text-center">🧪 דאשבורד בקרות איכות</h2>
+
+<a href="{{ url_for('quality.export_quality_excel') }}" class="btn btn-outline-success d-flex align-items-center gap-2 mb-3" style="width: fit-content;">
+  <img src="https://cdn-icons-png.flaticon.com/512/732/732220.png" alt="Excel Icon" width="24" height="24">
+  ייצוא לאקסל
+</a>
+
+
+ <!-- 🔍 טופס סינון -->
+  <form method="get" class="mb-4">
+    <div class="row g-2">
+      <div class="col-md-3">
+        <label>לקוח:</label>
+        <input type="text" name="customer" class="form-control" value="{{ request.args.get('customer', '') }}">
+      </div>
+      <div class="col-md-3">
+        <label>מתאריך:</label>
+        <input type="date" name="from_date" class="form-control" value="{{ request.args.get('from_date', '') }}">
+      </div>
+      <div class="col-md-3">
+        <label>עד תאריך:</label>
+        <input type="date" name="to_date" class="form-control" value="{{ request.args.get('to_date', '') }}">
+      </div>
+      <div class="col-md-2">
+        <label>מצב בקרה:</label>
+        <select name="quality_status" class="form-select">
+          <option value="">הכל</option>
+          <option value="עבר" {% if request.args.get('quality_status') == 'עבר' %}selected{% endif %}> 	✅ עבר </option>
+          <option value="נכשל" {% if request.args.get('quality_status') == 'נכשל' %}selected{% endif %}>❌ נכשל</option>
+          <option value="pending" {% if request.args.get('quality_status') == 'pending' %}selected{% endif %}>⏳ לא בוצע</option>
+        </select>
+      </div>
+      <div class="col-md-1 align-self-end">
+        <button type="submit" class="btn btn-primary w-100">סנן</button>
+      </div>
+    </div>
+  </form>
+<!-- 📋 טבלת בקרות -->
+<table class="table table-bordered table-striped shadow-sm">
+    <thead class="table-light">
+        <tr>
+            <th>מספר תוכנית</th>
+            <th>תאריך</th>
+            <th>לקוח</th>
+            <th>סטטוס תוכנית</th>
+            <th>מצב בקרה</th>
+            <th>הערות</th>
+            <th>פעולה</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in checks %}
+        <tr>
+            <td>{{ row.id }}</td>
+            <td>{{ row.date }}</td>
+            <td>{{ row.customer }}</td>
+            <td>{{ row.status }}</td>
+            <td>
+                {% if row.quality_status == 'עבר' %}
+                    <span class="text-success">✅ עבר</span>
+                {% elif row.quality_status == 'נכשל' %}
+                    <span class="text-danger">❌ נכשל</span>
+                {% else %}
+                    <span class="text-secondary">⏳ לא בוצע</span>
+                {% endif %}
+            </td>
+            <td>{{ row.quality_notes or '-' }}</td>
+            <td>
+                {% if row.status == 'ממתין לבקרת איכות' and not row.quality_status %}
+                    <a href="{{ url_for('quality.quality_check', plan_id=row.id) }}" class="btn btn-warning btn-sm">בצע בקרה</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted">לא נמצאו תוצאות תואמות</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quality_dashboard.js') }}"></script>
+{% endblock %}

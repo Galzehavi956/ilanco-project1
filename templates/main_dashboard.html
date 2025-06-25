@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}דשבורד ייצור{% endblock %}
+
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main_dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<h1 class="text-center">📊 דשבורד מרכזי</h1>
+
+<!-- 🔹 כרטיסים עליונים בשורה אחת -->
+<div class="row mb-5 justify-content-center">
+  <div class="col-md-2 mb-3 d-flex">
+    <div class="stat-card text-center w-100">
+      <div class="stat-title">סה"כ הזמנות ייצור</div>
+      <div class="stat-value">{{ total_orders }}</div>
+    </div>
+  </div>
+  <div class="col-md-2 mb-3 d-flex">
+    <div class="stat-card text-center w-100">
+      <div class="stat-title">הזמנות פעילות</div>
+      <div class="stat-value">{{ active_orders }}</div>
+    </div>
+  </div>
+  <div class="col-md-2 mb-3 d-flex">
+    <div class="stat-card text-center w-100">
+      <div class="stat-title">בדיקות איכות</div>
+      <div class="stat-value">{{ quality_checks }}</div>
+    </div>
+  </div>
+  <div class="col-md-2 mb-3 d-flex">
+    <div class="stat-card text-center w-100">
+      <div class="stat-title">אחוז כשל</div>
+      <div class="stat-value">{{ fail_rate }}%</div>
+    </div>
+  </div>
+  <div class="col-md-2 mb-3 d-flex">
+    <div class="stat-card text-center w-100 ">
+      <div class="stat-title ">ממתין לבקרת איכות</div>
+      <div class="stat-value ">{{ pending_quality }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- 🔸 גרפים -->
+<div class="row">
+  <!-- גרף עוגה – בקרת איכות -->
+ <div class="col-md-6 mb-4">
+  <div class="card small-card">
+    <div class="card-header bg-light">התפלגות בקרת איכות</div>
+    <div class="card-body">
+      <canvas id="qualityPie"></canvas>
+    </div>
+  </div>
+</div>
+
+  <!-- גרף עוגה – עדיפות -->
+<div class="col-md-6 mb-4">
+  <div class="card small-card">
+    <div class="card-header bg-light">התפלגות עדיפות בתוכניות ייצור</div>
+    <div class="card-body">
+      <canvas id="priorityPieChart"></canvas>
+    </div>
+  </div>
+</div>
+
+
+<!-- גרף עמודות – כמות ייצור לפי תאריך -->
+<div class="row">
+  <div class="col-md-12 mb-4">
+    <div class="card">
+      <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <span>כמות ייצור לפי תאריך</span>
+        <button id="exportBarChartPDF" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-2">
+          <img src="https://cdn-icons-png.flaticon.com/512/337/337946.png" width="18" height="18" alt="PDF Icon">
+          ייצוא PDF
+        </button>
+      </div>
+      <div class="card-body">
+        <canvas id="productionBar"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+
+<script src="{{ url_for('static', filename='js/main_dashboard.js') }}"></script>
+<script>
+  /* גשר בין Flask (השרת) לבין JavaScript (הדפדפן)*/
+  window.qualityLabels = {{ quality_labels | tojson  }};
+  window.qualityValues = {{ quality_values | tojson }};
+  window.barLabels = {{ bar_labels | tojson }};
+  window.barValues = {{ bar_values | tojson }};
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+
+{% endblock %}
