@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h3>🔧 סטטוס מערכת AI</h3>
+                </div>
+                
+                <div class="card-body">
+                    <div class="status-item mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><strong>חיבור ל-Ollama:</strong></span>
+                            {% if status.ollama_connected %}
+                                <span class="badge bg-success">✅ מחובר</span>
+                            {% else %}
+                                <span class="badge bg-danger">❌ לא מחובר</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="status-item mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><strong>כתובת שרת:</strong></span>
+                            <code>{{ status.ollama_url }}</code>
+                        </div>
+                    </div>
+                    
+                    <div class="status-item mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><strong>מודל AI:</strong></span>
+                            <code>{{ status.model_name }}</code>
+                        </div>
+                    </div>
+                    
+                    <div class="status-item mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><strong>זמן בדיקה:</strong></span>
+                            <small class="text-muted">{{ status.timestamp }}</small>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    {% if not status.ollama_connected %}
+                    <div class="alert alert-warning">
+                        <h6>🚨 בעיות חיבור</h6>
+                        <p class="mb-2">ייתכן שהבעיה היא:</p>
+                        <ul class="mb-0">
+                            <li>Ollama לא מותקן או לא רץ</li>
+                            <li>כתובת השרת שגויה</li>
+                            <li>המודל לא זמין</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6>💡 הוראות התקנה</h6>
+                        <ol class="mb-0">
+                            <li>הורד את Ollama מ-<a href="https://ollama.ai" target="_blank">ollama.ai</a></li>
+                            <li>התקן והפעל את Ollama</li>
+                            <li>הרץ: <code>ollama pull {{ status.model_name }}</code></li>
+                            <li>בדוק שהשרת רץ על {{ status.ollama_url }}</li>
+                        </ol>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-success">
+                        <h6>✅ המערכת פועלת תקין!</h6>
+                        <p class="mb-0">כל המרכיבים מחוברים ופועלים כמו שצריך.</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="text-center mt-4">
+                        <button class="btn btn-primary" onclick="location.reload()">
+                            🔄 רענן סטטוס
+                        </button>
+                        <a href="/ai" class="btn btn-secondary ms-2">
+                            🧠 חזור לשאילתות
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
