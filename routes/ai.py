@@ -1,22 +1,18 @@
-from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for
-import requests
+from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for #יבוא של תיקיות:תקשורת עם המשתמש
+import requests #שליחת שאלות לאולמה
 import json
-from datetime import datetime
+from datetime import datetime #עבודה עם תאריכים
 import os
-from db import get_db
+from db import get_db #עבודה עם מסד נתונים
 
-ai_bp = Blueprint('ai', __name__)
+ai_bp = Blueprint('ai', __name__) 
 
-# הגדרות AI - שנה לפי הצורך
-USE_OLLAMA = False  # שנה ל-True אם אתה רוצה להשתמש ב-Ollama
+USE_OLLAMA = True  
 OLLAMA_URL = "http://localhost:11434"
-MODEL_NAME = "llama3.2"
+MODEL_NAME = "mistral"
 
-# חלופה: Hugging Face API (בחינם עם הגבלות)
-HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium"
-HUGGINGFACE_API_KEY = ""  # אם יש לך API Key
 
-class ProductionRAG:
+class ProductionRAG: 
     """מחלקה לניהול RAG עבור נתוני הייצור"""
     
     def __init__(self):
@@ -140,7 +136,7 @@ def query_ollama(prompt, context=""):
         response = requests.post(
             f"{OLLAMA_URL}/api/generate",
             json=payload,
-            timeout=30
+            timeout=900
         )
         
         if response.status_code == 200:
@@ -273,9 +269,33 @@ def ai_api():
     # טעינת קונטקסט
     rag = ProductionRAG()
     if rag.load_production_context():
-        context = rag.context_data
+        full_context = rag.context_data  # הקונטקסט המלא
+        context_obj = rag._format_context.__self__.context_data  # נשלוף את כל הנתונים
+        question_lower = question.lower()
+
+        # אם השאלה עוסקת בלקוחות – שלחי רק את החלק הזה
+        if any(word in question_lower for word in ['לקוח', 'לקוחות']):
+            context = rag._format_context({
+                'customer_data': context_obj.get('customer_data', [])
+            })
+        elif any(word in question_lower for word in ['עדיפות']):
+            context = rag._format_context({
+                'priority_stats': context_obj.get('priority_stats', [])
+            })
+        elif any(word in question_lower for word in ['סטטוס', 'סטטיסטיקה']):
+            context = rag._format_context({
+                'quality_stats': context_obj.get('quality_stats', [])
+            })
+        elif any(word in question_lower for word in ['תוכניות', 'ייצור']):
+            context = rag._format_context({
+                'production_plans': context_obj.get('production_plans', [])
+            })
+        else:
+            # אחרת – שולחים את כל הקונטקסט
+            context = full_context
     else:
         context = "לא הצלחתי לטעון נתונים מהמערכת."
+
     
     # שליחת השאילתה
     answer = query_ai(question, context)
