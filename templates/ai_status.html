@@ -12,25 +12,34 @@
                 <div class="card-body">
                     <div class="status-item mb-3">
                         <div class="d-flex justify-content-between align-items-center">
-                            <span><strong>חיבור ל-Ollama:</strong></span>
-                            {% if status.ollama_connected %}
-                                <span class="badge bg-success">✅ מחובר</span>
+                            <span><strong>שירות AI:</strong></span>
+                            {% if status.ai_connected %}
+                                <span class="badge bg-success">✅ פועל</span>
                             {% else %}
-                                <span class="badge bg-danger">❌ לא מחובר</span>
+                                <span class="badge bg-danger">❌ לא פועל</span>
                             {% endif %}
                         </div>
                     </div>
                     
                     <div class="status-item mb-3">
                         <div class="d-flex justify-content-between align-items-center">
-                            <span><strong>כתובת שרת:</strong></span>
-                            <code>{{ status.ollama_url }}</code>
+                            <span><strong>סוג שירות:</strong></span>
+                            <code>{{ status.service_type }}</code>
                         </div>
                     </div>
                     
+                    {% if status.use_ollama %}
                     <div class="status-item mb-3">
                         <div class="d-flex justify-content-between align-items-center">
-                            <span><strong>מודל AI:</strong></span>
+                            <span><strong>כתובת Ollama:</strong></span>
+                            <code>{{ status.ollama_url }}</code>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="status-item mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><strong>מודל:</strong></span>
                             <code>{{ status.model_name }}</code>
                         </div>
                     </div>
@@ -44,9 +53,9 @@
                     
                     <hr>
                     
-                    {% if not status.ollama_connected %}
+                    {% if not status.ai_connected and status.use_ollama %}
                     <div class="alert alert-warning">
-                        <h6>🚨 בעיות חיבור</h6>
+                        <h6>🚨 בעיות חיבור ל-Ollama</h6>
                         <p class="mb-2">ייתכן שהבעיה היא:</p>
                         <ul class="mb-0">
                             <li>Ollama לא מותקן או לא רץ</li>
@@ -64,10 +73,21 @@
                             <li>בדוק שהשרת רץ על {{ status.ollama_url }}</li>
                         </ol>
                     </div>
-                    {% else %}
+                    {% elif status.ai_connected %}
                     <div class="alert alert-success">
                         <h6>✅ המערכת פועלת תקין!</h6>
-                        <p class="mb-0">כל המרכיבים מחוברים ופועלים כמו שצריך.</p>
+                        <p class="mb-0">
+                            {% if status.use_ollama %}
+                                Ollama מחובר ופועל כמו שצריך.
+                            {% else %}
+                                מערכת AI פנימית פועלת (מבוססת חוקים).
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <h6>ℹ️ מידע</h6>
+                        <p class="mb-0">המערכת עובדת במצב פנימי עם מודל מבוסס חוקים.</p>
                     </div>
                     {% endif %}
                     

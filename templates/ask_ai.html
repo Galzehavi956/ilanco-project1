@@ -1,20 +1,350 @@
-{% extends "base.html" %}
-
-{% block content %}
-  <div class="container mt-4">
-    <h2>🧠 שאל את המערכת</h2>
-    <form method="POST">
-      <div class="mb-3">
-        <label for="question" class="form-label">שאלה:</label>
-        <input type="text" class="form-control" id="question" name="question" required>
-      </div>
-      <button type="submit" class="btn btn-primary">שלח</button>
-    </form>
-
-    {% if answer %}
-      <div class="alert alert-success mt-4">
-        <strong>תשובה:</strong> {{ answer }}
-      </div>
-    {% endif %}
-  </div>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>שאל את המערכת AI </title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #2980b9, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '🤖';
+            position: absolute;
+            top: 15px;
+            right: 30px;
+            font-size: 2rem;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            background: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 25px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+            text-decoration: none;
+            color: white;
+        }
+        
+        .form-container {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .question-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .question-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .submit-btn {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 15px 35px;
+            border: none;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(39, 174, 96, 0.3);
+        }
+        
+        .submit-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .suggestions {
+            margin-top: 20px;
+        }
+        
+        .suggestions h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .suggestion-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .suggestion-btn {
+            background: #ecf0f1;
+            color: #2c3e50;
+            border: 2px solid transparent;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .suggestion-btn:hover {
+            background: #3498db;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .answer-section {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 25px;
+            border-right: 5px solid #3498db;
+        }
+        
+        .answer-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .answer-header h3 {
+            color: #2c3e50;
+            font-size: 1.4rem;
+        }
+        
+        .answer-content {
+            line-height: 1.8;
+            font-size: 16px;
+            color: #2c3e50;
+            white-space: pre-wrap;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .error-section {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            border: 2px solid #f44336;
+            color: #c62828;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            color: #666;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .suggestion-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>שאל את המערכת AI </h1>
+            <p>שאל שאלות על נתוני הייצור, הלקוחות והסטטיסטיקות</p>
+        </div>
+        
+        <div class="content">
+            <a href="/main-dashboard" class="back-link">← חזור לדשבורד הראשי</a>
+            
+            <form method="POST" id="aiForm">
+                <div class="form-container">
+                    <div class="form-group">
+                        <label for="question">שאלה:</label>
+                        <textarea 
+                            name="question" 
+                            id="question" 
+                            class="question-input"
+                            placeholder="לדוגמה: כמה הזמנות יעדיפות גבוהה יש לנו השבוע? מי הלקוח הכי פעיל? מה הסטטיסטיקות של המערכת?"
+                            required
+                        >{{ request.form.get('question', '') }}</textarea>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <span>🚀</span>
+                        <span>שלח שאלה</span>
+                    </button>
+                </div>
+                
+                <div class="suggestions">
+                    <h3>דוגמאות לשאלות:</h3>
+                    <div class="suggestion-buttons">
+                        <button type="button" class="suggestion-btn" onclick="setQuestion('מהן הסטטיסטיקות של המערכת?')">
+                           סטטיסטיקה של תוכניות פעילות
+                        </button>
+                        <button type="button" class="suggestion-btn" onclick="setQuestion('תמנה לי לפי חלוקה של עדיפות גבוהה, בינונית, נמוכה')">
+                          סדר עדיפויות
+                        </button>
+                        <button type="button" class="suggestion-btn" onclick="setQuestion('מי הם הלקוחות המובילים? ')">
+                            לקוחות מובילים
+                        </button>
+                        <button type="button" class="suggestion-btn" onclick="setQuestion(' מהם התוכניות הפעילות כעת?')">
+                            תוכניות פעילות
+                        </button>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner"></div>
+                <p>מעבד את השאלה שלך...</p>
+            </div>
+            
+            {% if error %}
+                <div class="error-section">
+                    <span style="font-size: 1.5rem;">❌</span>
+                    <div>
+                        <strong>שגיאה:</strong> {{ error }}
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if answer %}
+                <div class="answer-section">
+                    <div class="answer-header">
+                        <span style="font-size: 1.5rem;">🤖</span>
+                        <h3>תשובת המערכת AI :</h3>
+                    </div>
+                    <div class="answer-content">{{ answer }}</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <script>
+        function setQuestion(text) {
+            document.getElementById('question').value = text;
+        }
+        
+        document.getElementById('aiForm').addEventListener('submit', function() {
+            const btn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('loadingSpinner');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span>⏳</span><span>מעבד...</span>';
+            spinner.style.display = 'block';
+        });
+        
+        // התמקדות אוטומטית בשדה השאלה
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('question').focus();
+        });
+    </script>
+</body>
+</html>

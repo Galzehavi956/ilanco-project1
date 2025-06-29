@@ -8,25 +8,30 @@ load_dotenv()
 
 def get_db():
     if 'db' not in g:
-        # בדיקת משתני סביבה
-        host = os.environ.get("MYSQL_HOST")
-        port = os.environ.get("MYSQL_PORT")
-        user = os.environ.get("MYSQL_USER")
-        password = os.environ.get("MYSQL_PASSWORD")
-        database = os.environ.get("MYSQL_DATABASE")
+        # ערכי ברירת מחדל אם .env לא נמצא
+        host = os.environ.get("MYSQL_HOST", "maglev.proxy.rlwy.net")
+        port = os.environ.get("MYSQL_PORT", "42451")
+        user = os.environ.get("MYSQL_USER", "root")
+        password = os.environ.get("MYSQL_PASSWORD", "tOFrlugegBNFmkSaEdAKJXJUDDMoiFfO")
+        database = os.environ.get("MYSQL_DATABASE", "railway")
 
-        # בדיקה מוקדמת – זורק שגיאה מפורשת אם משהו חסר
-        if not all([host, port, user, password, database]):
-            raise ValueError("❌ אחד או יותר ממשתני הסביבה (.env) חסרים")
-
-        g.db = mysql.connector.connect(
-            host=host,
-            port=int(port),
-            user=user,
-            password=password,
-            database=database
-        )
-        g.db.autocommit = True
+        print(f"🔌 מתחבר למסד נתונים: {host}:{port}")
+        
+        try:
+            g.db = mysql.connector.connect(
+                host=host,
+                port=int(port),
+                user=user,
+                password=password,
+                database=database,
+                charset='utf8mb4',
+                collation='utf8mb4_unicode_ci'
+            )
+            g.db.autocommit = True
+            print("✅ חיבור למסד נתונים הצליח")
+        except Exception as e:
+            print(f"❌ שגיאה בחיבור למסד נתונים: {e}")
+            raise
 
     return g.db
 

@@ -7,9 +7,14 @@ from db import get_db
 
 ai_bp = Blueprint('ai', __name__)
 
-# קבועים עבור Ollama
-OLLAMA_URL = "http://localhost:11434"  # כתובת ברירת מחדל של Ollama
-MODEL_NAME = "llama3.2"  # או כל מודל אחר שיש לך
+# הגדרות AI - שנה לפי הצורך
+USE_OLLAMA = False  # שנה ל-True אם אתה רוצה להשתמש ב-Ollama
+OLLAMA_URL = "http://localhost:11434"
+MODEL_NAME = "llama3.2"
+
+# חלופה: Hugging Face API (בחינם עם הגבלות)
+HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium"
+HUGGINGFACE_API_KEY = ""  # אם יש לך API Key
 
 class ProductionRAG:
     """מחלקה לניהול RAG עבור נתוני הייצור"""
@@ -77,13 +82,33 @@ class ProductionRAG:
         
         return context_text
 
-def check_ollama_connection():
-    """בודק אם Ollama זמין"""
+def check_ai_service():
+    """בודק איזה שירות AI זמין"""
+    if USE_OLLAMA:
+        try:
+            response = requests.get(f"{OLLAMA_URL}/api/tags", timeout=5)
+            return response.status_code == 200, "ollama"
+        except:
+            return False, "ollama"
+    else:
+        # בשלב זה נחשיב שהשירות הפשוט זמין תמיד
+        return True, "simple"
+
+def query_ai(prompt, context=""):
+    """שולח שאילתה לשירות AI"""
     try:
-        response = requests.get(f"{OLLAMA_URL}/api/tags", timeout=5)
-        return response.status_code == 200
-    except:
-        return False
+        is_available, service_type = check_ai_service()
+        
+        if not is_available:
+            return "שירות ה-AI לא זמין כרגע. ודא שכל השירותים פועלים."
+        
+        if service_type == "ollama":
+            return query_ollama(prompt, context)
+        else:
+            return query_simple_ai(prompt, context)
+            
+    except Exception as e:
+        return f"שגיאה בחיבור למודל AI: {str(e)}"
 
 def query_ollama(prompt, context=""):
     """שולח שאילתה ל-Ollama עם קונטקסט"""
@@ -129,42 +154,105 @@ def query_ollama(prompt, context=""):
     except Exception as e:
         return f"שגיאה בחיבור למודל AI: {str(e)}"
 
+def query_simple_ai(prompt, context=""):
+    """עוזר AI מבוסס חוקים לצורך הדגמה"""
+    prompt_lower = prompt.lower()
+    
+    # ניתוח החוקים הפשוטים לפי מילות מפתח
+    if any(word in prompt_lower for word in ['סטטיסטיקות', 'נתונים', 'דוח', 'סטטיסטיקה']):
+        if 'סטטיסטיקות סטטוס:' in context:
+            stats_section = context.split('סטטיסטיקות סטטוס:')[1].split('\n\n')[0]
+            return f"הנה הסטטיסטיקות העדכניות מהמערכת:\n{stats_section}"
+        else:
+            return "לא מצאתי נתוני סטטיסטיקות במערכת כרגע."
+    
+    elif any(word in prompt_lower for word in ['לקוחות', 'לקוח', 'קונים']):
+        if 'נתוני לקוחות' in context:
+            customers_section = context.split('נתוני לקוחות')[1].split('\n\n')[0]
+            return f"הנה נתוני הלקוחות שלנו:\n{customers_section}"
+        else:
+            return "לא מצאתי נתוני לקוחות במערכת כרגע."
+    
+    elif any(word in prompt_lower for word in ['עדיפות', 'דחיפות', 'חשיבות']):
+        if 'סטטיסטיקות עדיפות:' in context:
+            priority_section = context.split('סטטיסטיקות עדיפות:')[1]
+            return f"הנה התפלגות העדיפויות במערכת:\n{priority_section}"
+        else:
+            return "לא מצאתי נתוני עדיפות במערכת כרגע."
+    
+    elif any(word in prompt_lower for word in ['ייצור', 'תוכניות', 'הזמנות']):
+        if 'תוכניות ייצור אחרונות:' in context:
+            plans_section = context.split('תוכניות ייצור אחרונות:')[1].split('\n\n')[0]
+            return f"הנה התוכניות האחרונות במערכת:\n{plans_section}"
+        else:
+            return "לא מצאתי תוכניות ייצור במערכת כרגע."
+    
+    elif any(word in prompt_lower for word in ['בעיות', 'תקלות', 'בעיה']):
+        return "כדי לזהות בעיות, אני ממליץ לבדוק:\n• תוכניות עם סטטוס 'נכשל' או 'בבדיקה'\n• הזמנות עם עדיפות גבוהה\n• עיכובים בלוח הזמנים"
+    
+    elif any(word in prompt_lower for word in ['המלצות', 'שיפור', 'אופטימיזציה']):
+        return "המלצות לשיפור המערכת:\n• מעקב אחר זמני השלמה\n• ניתוח דפוסי הכשלים\n• אופטימיזציה של לוח הזמנים\n• שיפור תקשורת עם לקוחות"
+    
+    else:
+        return f"אני כאן לעזור עם שאלות על מערכת הייצור. אתה יכול לשאול על:\n• סטטיסטיקות המערכת\n• נתוני לקוחות\n• תוכניות ייצור\n• המלצות לשיפור\n\nהשאלה שלך: '{prompt}' - אם אתה יכול לפרט יותר, אוכל לעזור בצורה טובה יותר."
+
 @ai_bp.route('/ai', methods=['GET', 'POST'])
 def ask_ai():
-    print("📩 POST request received")
-    print("שאלה שהתקבלה:", question)
-
     """עמוד שאילתות AI"""
-    print("📡 /ai endpoint called!")
-    
-    # בדיקת הרשאות
-    if 'username' not in session:
-        return redirect(url_for('login'))
-    
-    answer = None
-    error = None
-    
-    if request.method == 'POST':
-        question = request.form.get('question', '').strip()
+    try:
+        print("📡 /ai endpoint called!")
         
-        if not question:
-            error = "אנא הכנס שאלה"
-        else:
-            # בדיקת חיבור ל-Ollama
-            if not check_ollama_connection():
-                error = "שירות ה-AI לא זמין כרגע. ודא ש-Ollama רץ על המחשב."
+        # בדיקת הרשאות
+        if 'username' not in session:
+            print("❌ אין session - מפנה ל-login")
+            return redirect(url_for('login'))
+        
+        print(f"✅ משתמש מחובר: {session.get('username')}")
+        
+        answer = None
+        error = None
+        
+        if request.method == 'POST':
+            print("📩 POST request received")
+            question = request.form.get('question', '').strip()
+            print(f"שאלה שהתקבלה: '{question}'")
+            
+            if not question:
+                error = "אנא הכנס שאלה"
+                print("❌ שאלה ריקה")
             else:
-                # טעינת קונטקסט
-                rag = ProductionRAG()
-                if rag.load_production_context():
-                    context = rag.context_data
+                print("🔍 בודק חיבור לשירות AI...")
+                # בדיקת חיבור לשירות AI
+                is_available, service_type = check_ai_service()
+                if not is_available:
+                    error = f"שירות ה-AI לא זמין כרגע. סוג שירות: {service_type}"
+                    print(f"❌ AI לא זמין: {service_type}")
                 else:
-                    context = "לא הצלחתי לטעון נתונים מהמערכת."
-                
-                # שליחת השאילתה
-                answer = query_ollama(question, context)
-    
-    return render_template('ask_ai.html', answer=answer, error=error)
+                    print(f"✅ AI זמין: {service_type}")
+                    print("📊 טוען קונטקסט...")
+                    
+                    # טעינת קונטקסט
+                    rag = ProductionRAG()
+                    if rag.load_production_context():
+                        context = rag.context_data
+                        print("✅ קונטקסט נטען בהצלחה")
+                    else:
+                        context = "לא הצלחתי לטעון נתונים מהמערכת."
+                        print("⚠️ שגיאה בטעינת קונטקסט")
+                    
+                    print("🤖 שולח שאילתה ל-AI...")
+                    # שליחת השאילתה
+                    answer = query_ai(question, context)
+                    print(f"📤 תשובה התקבלה: {answer[:100]}...")
+        
+        print("🎨 מעבד template...")
+        return render_template('ask_ai.html', answer=answer, error=error)
+        
+    except Exception as e:
+        print(f"💥 שגיאה ב-ask_ai: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return f"<h2>❌ שגיאה פנימית</h2><pre>{str(e)}</pre>", 500
 
 @ai_bp.route('/ai/api', methods=['POST'])
 def ai_api():
@@ -178,8 +266,9 @@ def ai_api():
     if not question:
         return jsonify({'error': 'שאלה ריקה'}), 400
     
-    if not check_ollama_connection():
-        return jsonify({'error': 'שירות AI לא זמין'}), 503
+    is_available, service_type = check_ai_service()
+    if not is_available:
+        return jsonify({'error': f'שירות AI לא זמין: {service_type}'}), 503
     
     # טעינת קונטקסט
     rag = ProductionRAG()
@@ -189,7 +278,7 @@ def ai_api():
         context = "לא הצלחתי לטעון נתונים מהמערכת."
     
     # שליחת השאילתה
-    answer = query_ollama(question, context)
+    answer = query_ai(question, context)
     
     return jsonify({
         'question': question,
@@ -200,13 +289,15 @@ def ai_api():
 @ai_bp.route('/ai/status')
 def ai_status():
     """בדיקת סטטוס שירות AI"""
-    ollama_status = check_ollama_connection()
+    is_available, service_type = check_ai_service()
     
     status_info = {
-        'ollama_connected': ollama_status,
-        'ollama_url': OLLAMA_URL,
-        'model_name': MODEL_NAME,
-        'timestamp': datetime.now().isoformat()
+        'ai_connected': is_available,
+        'service_type': service_type,
+        'ollama_url': OLLAMA_URL if USE_OLLAMA else "לא בשימוש",
+        'model_name': MODEL_NAME if USE_OLLAMA else "מודל פנימי",
+        'timestamp': datetime.now().isoformat(),
+        'use_ollama': USE_OLLAMA
     }
     
     if request.args.get('format') == 'json':
