@@ -1,11 +1,11 @@
 from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for #יבוא של תיקיות:תקשורת עם המשתמש
 import requests #שליחת שאלות לאולמה
-import json
+import json #עבודה עם נתוני גיסון
 from datetime import datetime #עבודה עם תאריכים
-import os
+import os #עבודה עם קבצי מערכת הפעלה
 from db import get_db #עבודה עם מסד נתונים
 
-ai_bp = Blueprint('ai', __name__) 
+ai_bp = Blueprint('ai', __name__)   
 
 USE_OLLAMA = True  
 OLLAMA_URL = "http://localhost:11434"
@@ -16,12 +16,12 @@ class ProductionRAG:
     """מחלקה לניהול RAG עבור נתוני הייצור"""
     
     def __init__(self):
-        self.context_data = []
+        self.context_data = [] #רשימה שתכיל את המידע מהמסד נתונים
     
     def load_production_context(self):
         """טוען נתוני ייצור מהמסד נתונים ליצירת קונטקסט"""
         try:
-            db = get_db()
+            db = get_db() #מתחבר למסד נתונים
             cursor = db.cursor(dictionary=True)
             
             # שאילתות לקבלת מידע רלוונטי
@@ -38,7 +38,7 @@ class ProductionRAG:
                 context[key] = cursor.fetchall()
             
             # יצירת טקסט קונטקסט מובנה
-            self.context_data = self._format_context(context)
+            self.context_data = self._format_context(context) #עיצוב הנתונים לטקסט
             return True
             
         except Exception as e:
@@ -50,8 +50,8 @@ class ProductionRAG:
         context_text = "מידע על מערכת הייצור:\n\n"
         
         # תוכניות ייצור אחרונות
-        if data.get('production_plans'):
-            context_text += "תוכניות ייצור אחרונות:\n"
+        if data.get('production_plans'): 
+            context_text += "תוכניות ייצור אחרונות:\n" #אם יש תוכניות יצור מוסיף אותם לטקסט
             for plan in data['production_plans'][:10]:  # רק 10 ראשונות
                 context_text += f"- תאריך: {plan['date']}, כמות: {plan['quantity']}, סטטוס: {plan['status']}, לקוח: {plan['customer']}, עדיפות: {plan['priority']}\n"
             context_text += "\n"
@@ -79,7 +79,7 @@ class ProductionRAG:
         return context_text
 
 def check_ai_service():
-    """בודק איזה שירות AI זמין"""
+    """בודק איזה שירות AI זמין""" #בדיקה אם הבינה מלאכותית זמינה
     if USE_OLLAMA:
         try:
             response = requests.get(f"{OLLAMA_URL}/api/tags", timeout=5)
@@ -90,7 +90,7 @@ def check_ai_service():
         # בשלב זה נחשיב שהשירות הפשוט זמין תמיד
         return True, "simple"
 
-def query_ai(prompt, context=""):
+def query_ai(prompt, context=""): #בודק אם יש אולמה או לעבור למנוע חיפוש פשוט מבוסס חוקים 
     """שולח שאילתה לשירות AI"""
     try:
         is_available, service_type = check_ai_service()
@@ -106,7 +106,7 @@ def query_ai(prompt, context=""):
     except Exception as e:
         return f"שגיאה בחיבור למודל AI: {str(e)}"
 
-def query_ollama(prompt, context=""):
+def query_ollama(prompt, context=""): #הפורמט שנשלח לאולמה
     """שולח שאילתה ל-Ollama עם קונטקסט"""
     try:
         # בניית הפרומפט עם קונטקסט
@@ -154,7 +154,7 @@ def query_simple_ai(prompt, context=""):
     """עוזר AI מבוסס חוקים לצורך הדגמה"""
     prompt_lower = prompt.lower()
     
-    # ניתוח החוקים הפשוטים לפי מילות מפתח
+    #ניתוח החוקים לפי מילות מפתח ומחפש בקובץ , במידה ולא מוצאת מבקשת לפרט יותר
     if any(word in prompt_lower for word in ['סטטיסטיקות', 'נתונים', 'דוח', 'סטטיסטיקה']):
         if 'סטטיסטיקות סטטוס:' in context:
             stats_section = context.split('סטטיסטיקות סטטוס:')[1].split('\n\n')[0]

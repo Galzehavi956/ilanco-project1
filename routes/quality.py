@@ -80,7 +80,7 @@ def submit_quality(plan_id):
 
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    cursor.execute('SELECT status, quality_status, customer FROM ProductionPlans WHERE id = %s', (plan_id,))
+    cursor.execute('SELECT status, quality_status,quality_fail_count, customer FROM ProductionPlans WHERE id = %s', (plan_id,))
     plan = cursor.fetchone()
 
     if not plan:
@@ -89,14 +89,27 @@ def submit_quality(plan_id):
     if plan['status'] != 'ממתין לבקרת איכות' or plan['quality_status'] is not None:
         return "🔒 לא ניתן לבצע בקרת איכות – סטטוס שגוי או שכבר בוצעה", 403
 
+    
+    # ✅ חסימה אם כבר היו שני כישלונות
+    if plan['quality_fail_count'] >= 2 and result == 'נכשל':
+        return "  🔒 לא ניתן לבצע בדיקה – התוכנית נכשלה פעמיים.", 403
+
+  
+
 
     new_status = 'עבר בקרת איכות' if result == 'עבר' else 'נכשל בקרת איכות'
+
+       # אם התוצאה 'נכשל' → העלה מונה
+    fail_count = plan['quality_fail_count']
+    if result == 'נכשל':
+        fail_count += 1
+
     cursor = db.cursor()
     cursor.execute('''
         UPDATE ProductionPlans
-        SET quality_status = %s, quality_notes = %s, status = %s
-        WHERE id = %s
-    ''', (result, notes, new_status, plan_id))
+        SET quality_status = %s, quality_notes = %s, status = %s,  quality_fail_count = %s
+                           WHERE id = %s
+    ''', (result, notes, new_status,fail_count, plan_id))
 
     db.commit()
 

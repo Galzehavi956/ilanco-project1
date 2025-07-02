@@ -25,6 +25,8 @@ cursor.execute('''
         quality_notes TEXT
     )
 ''')
+cursor.execute("ALTER TABLE ProductionPlans ADD COLUMN quality_fail_count INT DEFAULT 0")
+
 
 conn.commit()
 conn.close()
